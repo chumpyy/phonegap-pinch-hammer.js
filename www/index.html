@@ -1,42 +1,115 @@
 <!DOCTYPE html>
-<!--
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-     KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
--->
 <html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="format-detection" content="telephone=no" />
+<head>
+    <title>Hammer.js</title>
+
+    <meta name="format-detection" content="telephone=no" />
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
-        <link rel="stylesheet" type="text/css" href="css/index.css" />
-        <title>Hello World</title>
-    </head>
-    <body>
-        <div class="app">
-            <h1>PhoneGap</h1>
-            <div id="deviceready" class="blink">
-                <p class="event listening">Connecting to Device</p>
-                <p class="event received">Device is Ready</p>
-            </div>
+
+
+    <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.2.2/css/bootstrap-combined.min.css" rel="stylesheet">
+    <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1, maximum-scale=1">
+    <style>
+        body {
+            padding: 0;
+            overflow: hidden;
+        }
+        #pinchzoom {
+            -webkit-transform: translate3d(0,0,0);
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="pinchzoom">
+        <div>
+            <img id="rect" src="monalisa.jpg" width="2835" height="4289" ondragstart="return false" alt="" />
         </div>
-        <script type="text/javascript" src="phonegap.js"></script>
-        <script type="text/javascript" src="js/index.js"></script>
-        <script type="text/javascript">
-            app.initialize();
-        </script>
-    </body>
+    </div>
+
+
+   <script type="text/javascript" src="cordova.js"></script>
+
+
+    <script type="text/javascript" src="js/index.js"></script>
+    <script type="text/javascript">
+        app.initialize();
+    </script>
+
+
+
+
+    <script src="js/jquery.js"></script>
+    <script src="js/modernizr.js"></script>
+    <script src="js/jquery.hammer.min.js"></script>
+
+    <script src="js/hammer.fakemultitouch.js"></script>
+    <script src="js/hammer.showtouches.js"></script>
+
+    <!--[if !IE]> -->
+    <script>
+        // show touches doesnt work well in older IE versions due lack of support of
+        // the pointer-event css property
+        if(!Hammer.HAS_TOUCHEVENTS && !Hammer.HAS_POINTEREVENTS) {
+            Hammer.plugins.showTouches();
+        }
+    </script>
+    <!-- <![endif]-->
+
+    <script>
+
+        if(!Hammer.HAS_TOUCHEVENTS && !Hammer.HAS_POINTEREVENTS) {
+            Hammer.plugins.fakeMultitouch();
+        }
+
+    var hammertime = Hammer(document.getElementById('pinchzoom'), {
+        transform_always_block: true,
+        transform_min_scale: 1,
+        drag_block_horizontal: true,
+        drag_block_vertical: true,
+        drag_min_distance: 0
+    });
+
+    var rect = document.getElementById('rect');
+
+    var posX=0, posY=0,
+        scale=1, last_scale,
+        rotation= 1, last_rotation;
+
+    hammertime.on('touch drag transform', function(ev) {
+        switch(ev.type) {
+            case 'touch':
+                last_scale = scale;
+                last_rotation = rotation;
+                break;
+
+            case 'drag':
+                posX = ev.gesture.deltaX;
+                posY = ev.gesture.deltaY;
+                break;
+
+            case 'transform':
+                rotation = last_rotation + ev.gesture.rotation;
+                scale = Math.max(1, Math.min(last_scale * ev.gesture.scale, 10));
+                break;
+        }
+
+        // transform!
+        var transform =
+                "translate3d("+posX+"px,"+posY+"px, 0) " +
+                "scale3d("+scale+","+scale+", 0) " +
+                "rotate("+rotation+"deg) ";
+
+        rect.style.transform = transform;
+        rect.style.oTransform = transform;
+        rect.style.msTransform = transform;
+        rect.style.mozTransform = transform;
+        rect.style.webkitTransform = transform;
+    });
+
+
+    </script>
+</body>
 </html>
